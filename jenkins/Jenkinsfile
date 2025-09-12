@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/anthonystln/JenkinsLab.git'
+            }
+        }
+        stage('Install') {
+            steps {
+                dir('app') {
+                    sh 'npm install'
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                dir('app') {
+                    sh 'npm test'
+                }
+            }
+        }
+        stage('Run') {
+            steps {
+                dir('app') {
+                    sh 'npm start'
+                }
+            }
+        }
+    }
+}
