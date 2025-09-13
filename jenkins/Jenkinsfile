@@ -13,17 +13,10 @@ pipeline {
                 }
             }
         }
-        stage('Test') {
+        stage('Build Docker Image') {
             steps {
-                dir('app') {
-                    sh 'npm test'
-                }
-            }
-        }
-        stage('Run') {
-            steps {
-                dir('app') {
-                    sh 'npm start'
+                script {
+                    sh 'docker build -t jenkinslab:latest ./app'
                 }
             }
         }
