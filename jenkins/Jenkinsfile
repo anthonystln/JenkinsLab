@@ -3,9 +3,10 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Utiliser checkout scm qui fonctionne mieux avec Jenkins
-                checkout scm
-            }
+                deleteDir()
+                git branch: 'main',
+                    url: 'https://github.com/anthonystin/JenkinsLab.git'
+                }
         }
         stage('Install') {
             steps {
