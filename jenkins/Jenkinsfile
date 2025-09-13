@@ -1,48 +1,18 @@
 pipeline {
     agent any
+
     stages {
-        stage('Checkout') {
+        stage('Check Git') {
             steps {
-                deleteDir()
-                git branch: 'main',
-                    url: 'https://github.com/anthonystin/JenkinsLab.git'
-                }
-        }
-        stage('Install') {
-            steps {
-                dir('app') {
-                    sh 'npm install'
-                }
+                sh 'git --version'
+                sh 'ls -la'
             }
         }
-        stage('Build Docker Image') {
+        stage('Check Docker') {
             steps {
-                script {
-                    // Construire l'image Docker depuis le dossier app
-                    sh 'docker build -t jenkinslab:latest ./app'
-                }
+                sh 'docker --version'
+                sh 'docker ps'
             }
-        }
-        stage('Run Tests') {
-            steps {
-                dir('app') {
-                    sh 'npm test'
-                }
-            }
-        }
-
-    }
-
-    post {
-        always {
-            // Nettoyer les images Docker pour éviter l'accumulation
-            sh 'docker system prune -f || true'
-        }
-        success {
-            echo 'Pipeline executed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed!'
         }
     }
 }
