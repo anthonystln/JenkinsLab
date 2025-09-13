@@ -3,7 +3,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/anthonystln/JenkinsLab.git'
+                // Utiliser checkout scm qui fonctionne mieux avec Jenkins
+                checkout scm
             }
         }
         stage('Install') {
@@ -16,9 +17,31 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Construire l'image Docker depuis le dossier app
                     sh 'docker build -t jenkinslab:latest ./app'
                 }
             }
+        }
+        stage('Run Tests') {
+            steps {
+                dir('app') {
+                    sh 'npm test'
+                }
+            }
+        }
+
+    }
+
+    post {
+        always {
+            // Nettoyer les images Docker pour éviter l'accumulation
+            sh 'docker system prune -f || true'
+        }
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
         }
     }
 }
