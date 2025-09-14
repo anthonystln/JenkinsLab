@@ -3,10 +3,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                deleteDir()
-                git branch: 'master',
-                    url: 'https://github.com/anthonystin/JenkinsLab.git'
-                }
+                checkout scm
+            }
         }
         stage('Install') {
             steps {
