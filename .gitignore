@@ -1,0 +1,13 @@
+# Fichiers générés par Maven
+app/target/
+**/.classpath
+**/.project
+**/.settings/
+
+# Dépôt Maven local
+.m2/
+
+# Fichiers système / IDE
+.vscode/
+.idea/
+.DS_Store
