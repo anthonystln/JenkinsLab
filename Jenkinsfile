@@ -13,9 +13,11 @@ pipeline {
                 }
             }
         }
-        stage('Archive') {
+        stage('Build Docker Image') {
             steps {
-                archiveArtifacts artifacts: 'app/target/*.jar', fingerprint: true
+                dir('app') {
+                    sh 'docker build -t java-app:1.0.0 .'
+                }
             }
         }
     }

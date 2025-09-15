@@ -1,15 +1,9 @@
-# app/Dockerfile
-FROM node:20-alpine
+FROM openjdk:17-jdk-slim
 
-# Créer dossier de l'app
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Copier les fichiers et installer les dépendences
-COPY package*.json ./
-RUN npm install
+# Copier le JAR généré par Maven
+COPY target/java-app-1.0.0.jar app.jar
 
-# Copier le reste du code
-COPY . .
-
-# Lancer l'app
-CMD [ "npm", "start" ]
+# Lancer automatiquement l'application
+CMD [ "java", "-jar", "app.jar" ]
