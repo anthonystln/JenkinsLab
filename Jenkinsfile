@@ -20,5 +20,12 @@ pipeline {
                 }
             }
         }
+        stage('Run Docker Image') {
+            steps {
+                dir('app') {
+                    sh 'docker run --rm java-app:1.0.0'
+                }
+            }
+        }
     }
 }
