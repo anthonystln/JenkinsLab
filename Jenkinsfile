@@ -23,7 +23,7 @@ pipeline {
         stage('Run Docker Image') {
             steps {
                 dir('app') {
-                    sh 'docker run --rm java-app:1.0.0'
+                    sh 'docker run --rm -p 8081:8080 java-app:1.0.0'
                 }
             }
         }
