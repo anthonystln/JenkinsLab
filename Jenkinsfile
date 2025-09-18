@@ -20,10 +20,13 @@ pipeline {
                 }
             }
         }
-        stage('Run Docker Image') {
+        stage('Push to Docker Hub') {
             steps {
-                dir('app') {
-                    sh 'docker run --rm -p 8081:8080 java-app:1.0.0'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push mndlr/java-app:1.0.0
+                    '''
                 }
             }
         }
