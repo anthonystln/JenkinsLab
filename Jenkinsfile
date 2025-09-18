@@ -45,9 +45,9 @@ pipeline {
         stage('Deploy to Local Docker') {
             steps {
                 sh '''
-                docker-compose -f jenkins/deploy/docker-compose.yml down || true
-                docker-compose -f jenkins/deploy/docker-compose pull
-                docker-compose -f jenkins/deploy/docker-compose.yml up -d
+                docker compose -f jenkins/deploy/docker-compose.yml down || true
+                docker compose -f jenkins/deploy/docker-compose pull
+                docker compose -f jenkins/deploy/docker-compose.yml up -d
                 '''
             }
         }
