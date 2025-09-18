@@ -46,7 +46,7 @@ pipeline {
             steps {
                 sh '''
                 docker-compose -f jenkins/deploy/docker-compose.yml down || true
-                docker-compose -f jenkins/deploy/docker-compose pull
+                docker-compose -f jenkins/deploy/docker-compose.yml pull
                 docker-compose -f jenkins/deploy/docker-compose.yml up -d
                 '''
             }
