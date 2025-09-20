@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class HelloController {
     @GetMapping("/hello")
     public String hello() {
-        return "Pipeline Maven-Jenkins : build réussi !";
+        return "Pipeline Maven-Jenkins : build réussi automatiquement (5min) !";
     }
 }
