@@ -18,7 +18,7 @@ pipeline {
         
         stage('Build Maven (Backend)') {
             steps {
-                dir('app') {
+                dir('backend') {
                     sh 'mvn clean package -DskipTests'
                 }
             }
@@ -26,7 +26,7 @@ pipeline {
 
         stage('Build Backend Docker Image') {
             steps {
-                dir('app') {
+                dir('backend') {
                     sh 'docker build -t $DOCKER_USER/$IMAGE_BACK:$IMAGE_TAG .'
                 }
             }
