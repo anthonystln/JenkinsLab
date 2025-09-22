@@ -6,7 +6,11 @@ function App() {
 	const [users, setUsers] = useState([]);
 	
 	useEffect(() => {
-		fetch("http://springboot-app:8080/users/") // ton backend
+		const apiUrl =
+			import.meta.env.VITE_API_URL ||
+			process.env.API_URL ||
+			"http://localhost:8081";
+		fetch(`${apiUrl}/users/`) // ton backend
       .then(res => res.json())
       .then(data => setUsers(data));
 	}, []);
