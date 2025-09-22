@@ -13,5 +13,5 @@ services:
     ports:
       - "3000:80"
     environment:
-      - API_URL=http://springboot-app:8080
+      - API_URL=http://springboot-app:8081
     restart: unless-stopped
