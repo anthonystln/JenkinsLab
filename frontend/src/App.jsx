@@ -6,7 +6,7 @@ function App() {
 	const [users, setUsers] = useState([]);
 	
 	useEffect(() => {
-		fetch("http://localhost:8081/users/") // ton backend
+		fetch("http://springboot-app:8081/users/") // ton backend
       .then(res => res.json())
       .then(data => setUsers(data));
 	}, []);
