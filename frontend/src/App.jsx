@@ -9,7 +9,7 @@ function App() {
 		const apiUrl =
 			import.meta.env.VITE_API_URL ||
 			process.env.API_URL ||
-			"http://localhost:8081";
+			"http://172.23.103.6/:8081";
 		fetch(`${apiUrl}/users/`) // ton backend
       .then(res => res.json())
       .then(data => setUsers(data));
