@@ -21,7 +21,28 @@ public class UserService {
         return users;
     }
 
-    public User getUsiUserById(Long id) {
+    public User getUserById(Long id) {
         return users.stream().filter(u -> u.getId().equals(id)).findFirst().orElse(null);
+    }
+
+    public User addUser(User user) {
+        user.setId((long) (users.size() + 1)); // Auto Incremente simple
+        users.add(user);
+        return user;
+    }
+
+    public User updateUser(Long id, User updatedUser) {
+        for (User u : users) {
+            if (u.getId().equals(id)) {
+                u.setName(updatedUser.getName());
+                u.setEmail(updatedUser.getEmail());
+                return u;
+            }
+        }
+        return null;
+    }
+
+    public void deleteUser(Long id) {
+        users.removeIf(u -> u.getId().equals(id));
     }
 }
