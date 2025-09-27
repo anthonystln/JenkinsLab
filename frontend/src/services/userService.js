@@ -1,8 +1,16 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8082/api"; 
 
 // 🔄 Récupère les utilisateurs (recherche + filtres + pagination)
-export async function fetchUsers({ query = "", role = "", status = "", page = 0, size = 6 } = {}) {
-    const params = new URLSearchParams({ page, size });
+export async function fetchUsers({ 
+    query = "", 
+    role = "", 
+    status = "", 
+    page = 0, 
+    size = 6,
+    sortField = "name",
+    sortDirection = "ASC"
+} = {}) {
+    const params = new URLSearchParams({ page, size, sortField, sortDirection });
 
     if (query) params.append("q", query);
     if (role) params.append("role", role);

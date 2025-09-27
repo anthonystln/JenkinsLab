@@ -1,13 +1,12 @@
 package com.example.demo.service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dto.PageResponse;
@@ -38,19 +37,19 @@ public class UserService {
     }
 
     // --- RECHERCHE + PAGINATION ---
-    public PageResponse<User> searchUserPaged(String q, int page, int size) {
-        List<User> filtered = searchUsers(q);
+    public PageResponse<User> searchUserPaged(String q, int page, int size, String sortField, String sortDirection) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        int from = Math.max(0, page * size);
-        int to = Math.min(filtered.size(), from + size);
+        Page<User> result = repo.findAll(pageable);
 
-        List<User> slice = from >= filtered.size()
-                ? Collections.emptyList()
-                : filtered.subList(from, to);
-        
-        int totalPages = (int) Math.ceil((double) filtered.size() / (double) size);
-        
-        return new PageResponse<>(slice, page, size, filtered.size(), totalPages);
+        // Applique un filtre en mémoire si q est renseigné.
+        List<User> filtered = result.getContent().stream()
+                .filter(u -> u.getName().toLowerCase().contains(q.toLowerCase())
+                    || u.getEmail().toLowerCase().contains(q.toLowerCase()))
+                .toList();
+
+        return new PageResponse<>(filtered, page, size, (int) result.getTotalElements(), result.getTotalPages());
     }
 
     public List<User> getAllUsers() {
@@ -126,17 +125,20 @@ public class UserService {
         );
     }
 
-    public PageResponse<User> filterUsers(String q, Status status, Role role, int page, int size) {
-        String needle = (q == null ? "" : q.trim().toLowerCase());
+    // --- FILTRE combiné + PAGINATION + TRI ---
+    public PageResponse<User> filterUsers(String q, Status status, Role role, int page, int size, String sortField, String sortDirection) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        List<User> filtered = repo.findAll().stream()
+        // Pour l'instant -> récupère tout et filtre en mémoire
+        List<User> filtered = repo.findAll(pageable).getContent().stream()
             .filter(u -> {
                 boolean match = true;
 
-                if (!needle.isEmpty()) {
+                if (q != null && !q.trim().isEmpty()) {
                     String name = u.getName() == null ? "" : u.getName().toLowerCase();
                     String email = u.getEmail() == null ? "" : u.getEmail().toLowerCase();
-                    match = name.contains(needle) || email.contains(needle);
+                    match = name.contains(q.toLowerCase()) || email.contains(q.toLowerCase());
                 }
                 if (status != null) {
                     match = match && u.getStatus() == status;

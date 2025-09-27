@@ -41,9 +41,13 @@ public class UserController {
     public PageResponse<User> searchUsers(
             @RequestParam(defaultValue = "") String q,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size
+            @RequestParam(defaultValue = "6") int size,
+            @RequestParam(defaultValue = "name") String sortField,
+            @RequestParam(defaultValue = "ASC") String sortDirection
     ) {
-        return userService.searchUserPaged(q, page, size);
+        String safeField = normalizeSortField(sortField);
+        String safeDir = normalizeSortDirection(sortDirection);
+        return userService.searchUserPaged(q, page, size, safeField, safeDir);
     }
 
     @GetMapping("/filter")
@@ -52,9 +56,13 @@ public class UserController {
             @RequestParam(required = false) Status status,
             @RequestParam(required = false) Role role,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size
+            @RequestParam(defaultValue = "6") int size,
+            @RequestParam(defaultValue = "name") String sortField,
+            @RequestParam(defaultValue = "ASC") String sortDirection
     ) {
-        return userService.filterUsers(q, status, role, page, size);
+        String safeField = normalizeSortField(sortField);
+        String safeDir = normalizeSortDirection(sortDirection);
+        return userService.filterUsers(q, status, role, page, size, safeField, safeDir);
     }
 
     // @GetMapping("/filter")
@@ -94,5 +102,24 @@ public class UserController {
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
+    }
+
+    private String normalizeSortField(String field) {
+        if (field == null) return "name";
+        switch (field) {
+            case "name":
+            case "email":
+            case "role":
+            case "status":
+                return field;
+            default:
+                return "name";
+        }
+    }
+
+    private String normalizeSortDirection(String dir) {
+        if (dir == null) return "ASC";
+        String upper = dir.toUpperCase();
+        return ("DESC".equals(upper)) ? "DESC" : "ASC";
     }
 }

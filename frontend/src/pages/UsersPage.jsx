@@ -7,6 +7,7 @@ import Pagination from "../components/Pagination";
 import { toast } from "react-hot-toast";
 import { addUser, updateUser, deleteUser, fetchUsers } from "../services/userService";
 import UserTable from "../components/UserTable";
+import PrivateLayout from "../layouts/PrivateLayout";
 
 export default function UsersPage() {
     const [users, setUsers] = useState([]);
@@ -21,6 +22,10 @@ export default function UsersPage() {
     const [roleFilter, setRoleFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
 
+    // 🔽 tri
+    const [sortField, setSortField] = useState("name");
+    const [sortDirection, setSortDirection] = useState("ASC");
+
     // pagination
     const [page, setPage] = useState(0);
     const [size, setSize] = useState(6);
@@ -34,7 +39,9 @@ export default function UsersPage() {
             role: roleFilter,
             status: statusFilter,
             page,
-            size
+            size,
+            sortField,
+            sortDirection
         });
         setUsers(result.content || []);
         setTotalElements(result.totalElements || 0);
@@ -57,7 +64,18 @@ export default function UsersPage() {
         }, 400);
 
         return () => clearTimeout(timer);
-    }, [searchQuery, roleFilter, statusFilter, page, size]);
+    }, [searchQuery, roleFilter, statusFilter, page, size, sortField, sortDirection]);
+
+    // Tri quand on clique sur une colonne
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === "ASC" ? "DESC" : "ASC");
+        } else {
+            setSortField(field);
+            setSortDirection("ASC");
+        }
+        setPage(0); // reset pagination
+    };
 
     // ✅ Validation formulaire
     const validateForm = () => {
@@ -124,101 +142,103 @@ export default function UsersPage() {
     };
 
     return (
-        <div className="h-screen w-screen flex flex-col bg-gray-50">
-            <Header
-                onAddClick={() => {
-                    setEditingUser(null);
-                    setNewUser({ name: "", email: "" });
-                    setErrors({ name: "", email: "" });
-                    setShowForm(true);
-                }}
-            />
+        <PrivateLayout>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-semibold mb-6">Liste des utilisateurs</h2>
 
-            <div className="flex flex-1 overflow-hidden">
-                <Sidebar />
-
-                <main className="flex-1 p-8 overflow-y-auto">
-                    <h2 className="text-2xl font-semibold mb-6">Liste des utilisateurs</h2>
-
-                    {/* 🔎 recherche + filtres */}
-                    <div className="flex gap-4 mb-6">
-                        <input
-                            type="text"
-                            placeholder="Rechercher un utilisateur..."
-                            value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                setPage(0);
-                            }}
-                            className="border rounded px-4 py-2 w-1/3"
-                        />
-
-                        <select
-                            value={roleFilter}
-                            onChange={(e) => {
-                                setRoleFilter(e.target.value);
-                                setPage(0);
-                            }}
-                            className="border rounded px-3 py-2"
-                        >
-                            <option value="">Tous les rôles</option>
-                            <option value="ADMIN">Admin</option>
-                            <option value="MANAGER">Manager</option>
-                            <option value="USER">User</option>
-                        </select>
-
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => {
-                                setStatusFilter(e.target.value);
-                                setPage(0);
-                            }}
-                            className="border rounded px-3 py-2"
-                        >
-                            <option value="">Tous les statuts</option>
-                            <option value="ACTIVE">Active</option>
-                            <option value="PENDING">Pending</option>
-                            <option value="BANNED">Banned</option>
-                        </select>
-                    </div>
-
-                    {showForm && (
-                        <UserForm
-                            user={newUser}
-                            errors={errors}
-                            editing={!!editingUser}
-                            onChange={setNewUser}
-                            onCancel={() => setShowForm(false)}
-                            onSubmit={handleSubmit}
-                        />
-                    )}
-
-                    {/* ✅ tableau */}
-                    {loading ? (
-                        <p className="text-blue-500 italic">Chargement...</p>
-                    ) : users.length === 0 ? (
-                        <p className="text-gray-500 italic">Aucun utilisateur trouvé</p>
-                    ) : (
-                        <>
-                            <UserTable
-                                users={users}
-                                onEdit={(user) => {
-                                    setEditingUser(user);
-                                    setNewUser({ name: user.name, email: user.email });
-                                    setShowForm(true);
-                                }}
-                                onDelete={setConfirmDelete}
-                            />
-                            <Pagination
-                                page={page}
-                                size={size}
-                                totalElements={totalElements}
-                                onPageChange={(newPage) => setPage(newPage)}
-                            />
-                        </>
-                    )}
-                </main>
+                <button
+                    onClick={() => {
+                        setEditingUser(null);
+                        setNewUser({ name: "", email: " "});
+                        setErrors({ name: "", email: "" });
+                        setShowForm(true);
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                >
+                    + Ajouter
+                </button>
             </div>
+
+            {/* 🔎 recherche + filtres */}
+            <div className="flex gap-4 mb-6">
+                <input
+                    type="text"
+                    placeholder="Rechercher un utilisateur..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setPage(0);
+                    }}
+                    className="border rounded px-4 py-2 w-1/3"
+                />
+
+                <select
+                    value={roleFilter}
+                    onChange={(e) => {
+                        setRoleFilter(e.target.value);
+                        setPage(0);
+                    }}
+                    className="border rounded px-3 py-2"
+                >
+                    <option value="">Tous les rôles</option>
+                    <option value="ADMIN">Admin</option>
+                    <option value="MANAGER">Manager</option>
+                    <option value="USER">User</option>
+                </select>
+
+                <select
+                    value={statusFilter}
+                    onChange={(e) => {
+                        setStatusFilter(e.target.value);
+                        setPage(0);
+                    }}
+                    className="border rounded px-3 py-2"
+                >
+                    <option value="">Tous les statuts</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="BANNED">Banned</option>
+                </select>
+            </div>
+
+            {showForm && (
+                <UserForm
+                    user={newUser}
+                    errors={errors}
+                    editing={!!editingUser}
+                    onChange={setNewUser}
+                    onCancel={() => setShowForm(false)}
+                    onSubmit={handleSubmit}
+                />
+            )}
+
+            {/* ✅ tableau */}
+            {loading ? (
+                <p className="text-blue-500 italic">Chargement...</p>
+            ) : users.length === 0 ? (
+                <p className="text-gray-500 italic">Aucun utilisateur trouvé</p>
+            ) : (
+                <>
+                    <UserTable
+                        users={users}
+                        sortField={sortField}
+                        sortDirection={sortDirection}
+                        onSort={handleSort}
+                        onEdit={(user) => {
+                            setEditingUser(user);
+                            setNewUser({ name: user.name, email: user.email });
+                            setShowForm(true);
+                        }}
+                        onDelete={setConfirmDelete}
+                    />
+                    <Pagination
+                        page={page}
+                        size={size}
+                        totalElements={totalElements}
+                        onPageChange={(newPage) => setPage(newPage)}
+                    />
+                </>
+            )}
 
             {confirmDelete && (
                 <ConfirmDeleteModal
@@ -227,6 +247,6 @@ export default function UsersPage() {
                     onConfirm={handleDelete}
                 />
             )}
-        </div>
+        </PrivateLayout>
     );
 }
