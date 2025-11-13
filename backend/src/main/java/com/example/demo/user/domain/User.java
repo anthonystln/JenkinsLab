@@ -1,5 +1,6 @@
-package com.example.demo.model;
+package com.example.demo.user.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -29,7 +30,11 @@ public class User {
     regexp = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
     message = "Email doit contenir un domaine valide (ex: .com, .fr)"
     )
+    @Column(unique = true) // Chaque email doit être unique
     private String email;
+
+    @NotBlank(message = "Le mot de passe est requis")
+    private String password;
 
     @Enumerated(EnumType.STRING) // Stocké en texte lisible (ADMIN, USER, etc.)
     private Role role;
@@ -41,10 +46,11 @@ public class User {
     public User() {}
 
     // Constructeur
-    public User(Long id, String name, String email, Role role, Status status) {
+    public User(Long id, String name, String email, String password, Role role, Status status) {
         this.id = id;
         this.name = name;
         this.email = email;
+        this.password = password;
         this.role = role;
         this.status = status;
     }
@@ -72,6 +78,14 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public Role getRole() {

@@ -236,6 +236,10 @@ export default function UsersPage() {
                         size={size}
                         totalElements={totalElements}
                         onPageChange={(newPage) => setPage(newPage)}
+                        onSizeChange={(newSize) => {
+                            setSize(newSize);
+                            setPage(0); // reset page quand on change la taille
+                        }}
                     />
                 </>
             )}

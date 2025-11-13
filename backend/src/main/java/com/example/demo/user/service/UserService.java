@@ -1,19 +1,24 @@
-package com.example.demo.service;
+package com.example.demo.user.service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.dto.PageResponse;
-import com.example.demo.model.Role;
-import com.example.demo.model.Status;
-import com.example.demo.model.User;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.shared.exception.EmailAlreadyUsedException;
+import com.example.demo.user.domain.Role;
+import com.example.demo.user.domain.Status;
+import com.example.demo.user.domain.User;
+import com.example.demo.user.dto.PageResponse;
+import com.example.demo.user.dto.UpdateUserRequest;
+import com.example.demo.user.repository.UserRepository;
 
 @Service
 public class UserService {
@@ -70,6 +75,26 @@ public class UserService {
             u.setEmail(updatedUser.getEmail());
             return repo.save(u); // UPDATE
         }).orElse(null);
+    }
+
+    public User updateMyInfo(String username, UpdateUserRequest request) {
+        User user = repo.findByEmail(username)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        if (request.getName() != null && !request.getName().isBlank()) {
+            user.setName(request.getName());
+        }
+
+        if (request.getEmail() != null && !request.getEmail().isBlank()) {
+            // Vérifier si l'email est déjà utilisé par un autre utilisateur
+            Optional<User> existingUser = repo.findByEmail(request.getEmail());
+            if (existingUser.isPresent() && !existingUser.get().getId().equals(user.getId())) {
+                throw new EmailAlreadyUsedException("Cet email est déjà utilisé par un autre compte.");
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        return repo.save(user);
     }
 
     public void deleteUser(Long id) {
