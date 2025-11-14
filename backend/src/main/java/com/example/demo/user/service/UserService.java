@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.kafka.UserEventProducer;
 import com.example.demo.shared.exception.EmailAlreadyUsedException;
 import com.example.demo.user.domain.Role;
 import com.example.demo.user.domain.Status;
@@ -24,10 +25,12 @@ import com.example.demo.user.repository.UserRepository;
 public class UserService {
     
     private final UserRepository repo;
+    private final UserEventProducer userEventProducer;
 
     // Injection du repository via constructeur
-    public UserService(UserRepository repo) {
+    public UserService(UserRepository repo, UserEventProducer userEventProducer) {
         this.repo = repo;
+        this.userEventProducer = userEventProducer;
     }
 
     // --- RECHERCHE SIMPLE ---
@@ -66,7 +69,9 @@ public class UserService {
     }
 
     public User addUser(User user) {
-        return repo.save(user); // INSERT
+        User saved = repo.save(user);
+        userEventProducer.sendUserEvent("User created: " + saved.getEmail());
+        return saved;
     }
 
     public User updateUser(Long id, User updatedUser) {
