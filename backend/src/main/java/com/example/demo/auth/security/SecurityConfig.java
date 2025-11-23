@@ -17,26 +17,20 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableMethodSecurity // // pour utiliser @PreAuthorize sur tes contrôleurs si besoin
+@EnableMethodSecurity
 public class SecurityConfig {
-    
+
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
     private UserDetailsService userDetailsService;
 
-    /**
-     * Encoder pour les mots de passe (BCrypt recommandé)
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * AuthenticationProvider qui dit à Spring Security comment charger les users
-     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -45,36 +39,39 @@ public class SecurityConfig {
         return provider;
     }
 
-    /**
-     * Fournit l’AuthenticationManager (utilisé dans le login)
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * Chaîne de filtres de sécurité principale
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // Désactive totalement CSRF
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> {})
+            // Désactiver CSRF pour API + WebSocket
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/api/**", "/ws/**", "/ws/info/**")
+            )
+            .cors(cors -> {})
 
-                // Autorise les frames pour H2 (sinon page blanche)
-                .headers(headers -> headers
-                    .frameOptions(frame -> frame.sameOrigin())
-                )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/h2-console/**").permitAll()
-                    .anyRequest().authenticated()
-                )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.sameOrigin())
+            )
+
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/ws/**").permitAll()
+                .requestMatchers("/ws/info/**").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
+                .anyRequest().authenticated()
+            )
+
+            .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .build();
     }
 }

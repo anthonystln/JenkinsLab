@@ -3,7 +3,10 @@ import LoginForm from './components/LoginForm';
 import PrivateRoute from './components/PrivateRoute';
 import RoleRoute from './components/RoleRoute';
 import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
+import CheckoutPage from './pages/CheckoutPage';
 import DashboardPage from './pages/DashboardPage';
+import InvoicesPage from './pages/InvoicesPage';
 import SettingsPage from './pages/SettingsPage';
 import UsersPage from './pages/UsersPage';
 import { Toaster } from 'react-hot-toast';
@@ -13,6 +16,7 @@ export default function App() {
 	return (
 		<BrowserRouter>
 			<AuthProvider> {/* ⬅️ tout est enveloppé ici */}
+				<NotificationProvider>
 					<Toaster position="top-right" reverseOrder={false} />
 					<Routes>
 						<Route path="/login" element={<LoginForm />} />
@@ -32,6 +36,26 @@ export default function App() {
 								</RoleRoute>
 							}
 						/>
+
+						{/* 🧾 Factures (privé — user connecté) */}
+						<Route
+							path="/invoices"
+							element={
+								<PrivateRoute>
+									<InvoicesPage />
+								</PrivateRoute>
+							}
+						/>
+
+						<Route
+							path="/checkout/:offerId"
+							element={
+								<PrivateRoute>
+									<CheckoutPage />
+								</PrivateRoute>
+							}
+						/>
+
 						<Route
 							path="/settings"
 							element={
@@ -41,6 +65,7 @@ export default function App() {
 							}
 						/>
 					</Routes>
+				</NotificationProvider>
 			</AuthProvider>
 		</BrowserRouter>
 	);

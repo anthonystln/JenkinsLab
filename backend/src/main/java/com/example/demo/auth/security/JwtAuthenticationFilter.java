@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -17,46 +16,65 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    
+
     @Autowired
     private JwtUtil jwtUtil;
 
     @Autowired
-    private UserDetailsService userDetailsService; // ton UserDetailsServiceImpl
+    private UserDetailsService userDetailsService; // → UserDetailsServiceImpl
 
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // Lire l'en-tête Authorization
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+
         final String authHeader = request.getHeader("Authorization");
 
-        String username = null;
         String jwt = null;
+        String email = null;
 
-        // Vérifier qu'on a bien "Bearer <token>"
+        // Vérifie "Bearer <token>"
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            jwt = authHeader.substring(7); // enlever "Bearer "
+            jwt = authHeader.substring(7);
             try {
-                username = jwtUtil.getUsernameFromToken(jwt);
+                email = jwtUtil.getUsernameFromToken(jwt);
             } catch (Exception e) {
-                logger.warn("JWT invalide : " + e.getMessage());
+                logger.warn("❌ Token JWT invalide : " + e.getMessage());
             }
         }
 
-        // Si on a un username et que pas déjà authentifié
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // Charger l'utilisateur en BDD
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+        // Si l'utilisateur n'est pas encore authentifié dans le contexte
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // Vérifier que le token est valide
+            // Charger CustomUserDetails via l’email
+            var userDetails = userDetailsService.loadUserByUsername(email);
+
+            // Vérifier signature + expiration
             if (jwtUtil.validateToken(jwt)) {
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                // Mettre l'utilisateur dans le contexte de sécurité Spring
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                // Extraire userId qui est maintenant dans le token
+                Long userId = jwtUtil.getUserIdFromToken(jwt);
+
+                // Convertir en CustomUserDetails
+                CustomUserDetails customUser = (CustomUserDetails) userDetails;
+
+                // Authentification Spring Security
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                                customUser,
+                                null,
+                                customUser.getAuthorities()
+                        );
+
+                // Associer l'authentification au contexte
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                logger.info("🔐 Authentifié : " + email + " (userId = " + userId + ")");
             }
         }
 
-        // Continuer la chaine de filtres
         filterChain.doFilter(request, response);
     }
-
 }
