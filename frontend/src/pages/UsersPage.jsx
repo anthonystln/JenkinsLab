@@ -144,12 +144,12 @@ export default function UsersPage() {
     return (
         <PrivateLayout>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold mb-6">Liste des utilisateurs</h2>
+                <h2 className="text-2xl font-semibold mb-6">User List</h2>
 
                 <button
                     onClick={() => {
                         setEditingUser(null);
-                        setNewUser({ name: "", email: " "});
+                        setNewUser({ name: "", email: " " });
                         setErrors({ name: "", email: "" });
                         setShowForm(true);
                     }}

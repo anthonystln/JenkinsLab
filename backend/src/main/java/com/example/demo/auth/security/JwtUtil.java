@@ -23,9 +23,10 @@ public class JwtUtil {
     /**
      * Générer un token JWT
      */
-    public String generateToken(String username, List<String> roles) {
+    public String generateToken(String username, Long userId, List<String> roles) {
         return JWT.create()
                 .withSubject(username)
+                .withClaim("userId", userId)
                 .withClaim("roles", roles)
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + expiration))
@@ -51,6 +52,14 @@ public class JwtUtil {
     public String getUsernameFromToken(String token) {
         DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC256(secret)).build().verify(token);
         return decodedJWT.getSubject();
+    }
+
+    /**
+     * Extraire le userId du token
+     */
+    public Long getUserIdFromToken(String token) {
+        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC256(secret)).build().verify(token);
+        return decodedJWT.getClaim("userId").asLong();
     }
 
     /**

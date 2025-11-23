@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.auth.security.CustomUserDetails;
 import com.example.demo.user.domain.User;
 import com.example.demo.user.repository.UserRepository;
 
@@ -36,12 +37,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // Transformer notre User en UserDetails (objet utilisé par Spring Security)
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().name());
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPassword())
-                .authorities(Collections.singleton(authority))
-                .accountLocked(user.getStatus().name().equals("BANNED"))
-                .disabled(user.getStatus().name().equals("BANNED"))
-                .build();
+        return new CustomUserDetails(
+                user.getEmail(),
+                user.getPassword(),
+                Collections.singleton(authority),
+                user.getId() // ⭐ ON RÉCUPÈRE L’ID
+        );
     }
 }

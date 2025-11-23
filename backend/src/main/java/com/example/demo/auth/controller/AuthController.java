@@ -77,8 +77,11 @@ public class AuthController {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found after authentication"));
+
         // Générer le JWT
-        String token = jwtUtil.generateToken(email,
+        String token = jwtUtil.generateToken(email, user.getId(),
             Collections.singletonList(
                 authentication.getAuthorities().iterator().next().getAuthority()
             )
@@ -87,6 +90,7 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
             "token", token,
             "email", email,
+            "userId", user.getId(),
             "roles", authentication.getAuthorities()
         ));
     }

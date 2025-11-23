@@ -1,5 +1,5 @@
 // src/components/Sidebar.jsx
-import { Home, Users, Settings } from "lucide-react";
+import { Home, Users, Settings, FileText } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -22,6 +22,11 @@ export default function Sidebar() {
 				<Users size={18} /> Utilisateurs
 				</NavLink>
 			)}
+
+			{/* Nouvelle entrée - Factures */}
+			<NavLink to="/invoices" className={linkClass}>
+				<FileText size={18} /> Factures
+			</NavLink>
 
 			<NavLink to="/settings" className={linkClass}>
 				<Settings size={18} /> Paramètres
