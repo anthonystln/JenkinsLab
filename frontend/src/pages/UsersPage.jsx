@@ -143,114 +143,123 @@ export default function UsersPage() {
 
     return (
         <PrivateLayout>
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold mb-6">User List</h2>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                    <div>
+                        <h2 className="text-3xl font-bold text-gray-900">Utilisateurs</h2>
+                        <p className="text-gray-500 mt-1">Gérez les accès et les rôles de vos membres.</p>
+                    </div>
 
-                <button
-                    onClick={() => {
-                        setEditingUser(null);
-                        setNewUser({ name: "", email: " " });
-                        setErrors({ name: "", email: "" });
-                        setShowForm(true);
-                    }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                    + Ajouter
-                </button>
-            </div>
-
-            {/* 🔎 recherche + filtres */}
-            <div className="flex gap-4 mb-6">
-                <input
-                    type="text"
-                    placeholder="Rechercher un utilisateur..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setPage(0);
-                    }}
-                    className="border rounded px-4 py-2 w-1/3"
-                />
-
-                <select
-                    value={roleFilter}
-                    onChange={(e) => {
-                        setRoleFilter(e.target.value);
-                        setPage(0);
-                    }}
-                    className="border rounded px-3 py-2"
-                >
-                    <option value="">Tous les rôles</option>
-                    <option value="ADMIN">Admin</option>
-                    <option value="MANAGER">Manager</option>
-                    <option value="USER">User</option>
-                </select>
-
-                <select
-                    value={statusFilter}
-                    onChange={(e) => {
-                        setStatusFilter(e.target.value);
-                        setPage(0);
-                    }}
-                    className="border rounded px-3 py-2"
-                >
-                    <option value="">Tous les statuts</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="BANNED">Banned</option>
-                </select>
-            </div>
-
-            {showForm && (
-                <UserForm
-                    user={newUser}
-                    errors={errors}
-                    editing={!!editingUser}
-                    onChange={setNewUser}
-                    onCancel={() => setShowForm(false)}
-                    onSubmit={handleSubmit}
-                />
-            )}
-
-            {/* ✅ tableau */}
-            {loading ? (
-                <p className="text-blue-500 italic">Chargement...</p>
-            ) : users.length === 0 ? (
-                <p className="text-gray-500 italic">Aucun utilisateur trouvé</p>
-            ) : (
-                <>
-                    <UserTable
-                        users={users}
-                        sortField={sortField}
-                        sortDirection={sortDirection}
-                        onSort={handleSort}
-                        onEdit={(user) => {
-                            setEditingUser(user);
-                            setNewUser({ name: user.name, email: user.email });
+                    <button
+                        onClick={() => {
+                            setEditingUser(null);
+                            setNewUser({ name: "", email: " " });
+                            setErrors({ name: "", email: "" });
                             setShowForm(true);
                         }}
-                        onDelete={setConfirmDelete}
-                    />
-                    <Pagination
-                        page={page}
-                        size={size}
-                        totalElements={totalElements}
-                        onPageChange={(newPage) => setPage(newPage)}
-                        onSizeChange={(newSize) => {
-                            setSize(newSize);
-                            setPage(0); // reset page quand on change la taille
-                        }}
-                    />
-                </>
-            )}
+                        className="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition shadow-sm font-medium flex items-center gap-2"
+                    >
+                        <span>+</span> Ajouter un utilisateur
+                    </button>
+                </div>
 
-            {confirmDelete && (
-                <ConfirmDeleteModal
-                    user={confirmDelete}
-                    onCancel={() => setConfirmDelete(null)}
-                    onConfirm={handleDelete}
-                />
-            )}
+                {/* 🔎 recherche + filtres */}
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row gap-4">
+                    <div className="flex-1">
+                        <input
+                            type="text"
+                            placeholder="Rechercher par nom ou email..."
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setPage(0);
+                            }}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        />
+                    </div>
+
+                    <div className="flex gap-4">
+                        <select
+                            value={roleFilter}
+                            onChange={(e) => {
+                                setRoleFilter(e.target.value);
+                                setPage(0);
+                            }}
+                            className="border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                        >
+                            <option value="">Tous les rôles</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="MANAGER">Manager</option>
+                            <option value="USER">User</option>
+                        </select>
+
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => {
+                                setStatusFilter(e.target.value);
+                                setPage(0);
+                            }}
+                            className="border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                        >
+                            <option value="">Tous les statuts</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="BANNED">Banned</option>
+                        </select>
+                    </div>
+                </div>
+
+                {showForm && (
+                    <UserForm
+                        user={newUser}
+                        errors={errors}
+                        editing={!!editingUser}
+                        onChange={setNewUser}
+                        onCancel={() => setShowForm(false)}
+                        onSubmit={handleSubmit}
+                    />
+                )}
+
+                {/* ✅ tableau */}
+                {loading ? (
+                    <p className="text-blue-500 italic">Chargement...</p>
+                ) : users.length === 0 ? (
+                    <p className="text-gray-500 italic">Aucun utilisateur trouvé</p>
+                ) : (
+                    <>
+                        <UserTable
+                            users={users}
+                            sortField={sortField}
+                            sortDirection={sortDirection}
+                            onSort={handleSort}
+                            onEdit={(user) => {
+                                setEditingUser(user);
+                                setNewUser({ name: user.name, email: user.email });
+                                setShowForm(true);
+                            }}
+                            onDelete={setConfirmDelete}
+                        />
+                        <Pagination
+                            page={page}
+                            size={size}
+                            totalElements={totalElements}
+                            onPageChange={(newPage) => setPage(newPage)}
+                            onSizeChange={(newSize) => {
+                                setSize(newSize);
+                                setPage(0); // reset page quand on change la taille
+                            }}
+                        />
+                    </>
+                )}
+
+                {confirmDelete && (
+                    <ConfirmDeleteModal
+                        user={confirmDelete}
+                        onCancel={() => setConfirmDelete(null)}
+                        onConfirm={handleDelete}
+                    />
+                )}
+            </div>
         </PrivateLayout>
     );
 }

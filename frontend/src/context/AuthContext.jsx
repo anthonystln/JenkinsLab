@@ -27,28 +27,31 @@ export function AuthProvider({ children }) {
   }, []);
 
   // ✅ Connexion → enregistre le token, charge le profil et redirige
-	const login = async ({ email, password }) => {
-		const res = await fetch("http://localhost:8082/api/auth/login", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ email, password }),
-		});
+  const login = async ({ email, password }) => {
+    const res = await fetch("http://localhost:8082/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-		if (!res.ok) throw new Error("Identifiants invalides");
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || "Identifiants invalides");
+    }
 
-		const data = await res.json();
-		localStorage.setItem("token", data.token);
+    const data = await res.json();
+    localStorage.setItem("token", data.token);
 
-		try {
-			const currentUser = await getCurrentUser();
-			setUser(currentUser);
-			navigate("/", { replace: true }); // ✅ redirection unique ici
-		} catch (err) {
-			console.error("❌ Erreur profil:", err);
-			logout();
-			throw err;
-		}
-	};
+    try {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+      navigate("/", { replace: true }); // ✅ redirection unique ici
+    } catch (err) {
+      console.error("❌ Erreur profil:", err);
+      logout();
+      throw err;
+    }
+  };
 
   // ✅ Déconnexion → supprime tout et redirige vers /login
   const logout = () => {
