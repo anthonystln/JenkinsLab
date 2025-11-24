@@ -1,265 +1,222 @@
 import { useEffect, useState } from "react";
 import PrivateLayout from "../layouts/PrivateLayout";
 import { getCurrentUser, updateMyInfo, updateMyPassword } from "../services/userService";
-import { Lock, Mail, Shield, User } from "lucide-react";
+import { Lock, Mail, Shield, User, Bell, Save, AlertCircle, CheckCircle } from "lucide-react";
 
 export default function SettingsPage() {
     const [user, setUser] = useState(null);
-    const [newPassword, setNewPassword] = useState("");
-    const [passwordError, setPasswordError] = useState("");
-    const [passwordMessage, setPasswordMessage] = useState("");
+    const [activeTab, setActiveTab] = useState("profile"); // profile, security, preferences
+    const [loading, setLoading] = useState(true);
+
+    // Form states
     const [editUser, setEditUser] = useState({ name: "", email: "" });
-    const [editMode, setEditMode] = useState(false);
-    const [infoErrors, setInfoErrors] = useState({ name: "", email: "" });
-    const [infoMessage, setInfoMessage] = useState("");
-    const [editPassword, setEditPassword] = useState(false);
+    const [newPassword, setNewPassword] = useState("");
+    const [currentPassword, setCurrentPassword] = useState(""); // Optional if backend requires it
+
+    // Feedback states
+    const [message, setMessage] = useState({ type: "", text: "" });
 
     useEffect(() => {
         getCurrentUser()
             .then((u) => {
                 setUser(u);
-                setEditUser(u);
+                setEditUser({ name: u.name, email: u.email });
+                setLoading(false);
             })
             .catch(console.error);
     }, []);
 
-    // ✅ Validation par champ
-    const validateInfo = () => {
-        let errors = { name: "", email: "" };
-        let valid = true;
-
-        if (!editUser.name || editUser.name.trim().length < 2) {
-            errors.name = "Le nom doit contenir au moins 2 caractères.";
-            valid = false;
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!editUser.email || !emailRegex.test(editUser.email)) {
-            errors.email = "Veuillez entrer une adresse email valide.";
-            valid = false;
-        }
-
-        setInfoErrors(errors);
-        return valid;
+    const showMessage = (type, text) => {
+        setMessage({ type, text });
+        setTimeout(() => setMessage({ type: "", text: "" }), 4000);
     };
 
     const handleInfoUpdate = async (e) => {
         e.preventDefault();
-        setInfoMessage("");
-
-        if (!validateInfo()) return;
-
         try {
             const updated = await updateMyInfo(editUser);
-
-            if (user.email !== updated.email) {
-                setInfoMessage("Votre email a été mis à jour. Veuillez vous reconnecter.");
-                localStorage.removeItem("token");
-                setTimeout(() => {
-                    window.location.href = "/login?reason=relogin";
-                }, 2000);
-                return;
-            }
-
             setUser(updated);
-            setEditUser(updated);
-            setEditMode(false);
-            setInfoMessage("Profil mis à jour avec succès !");
+            showMessage("success", "Informations mises à jour avec succès.");
         } catch (err) {
-            setInfoErrors({ ...infoErrors, email: err.message });
+            showMessage("error", "Erreur lors de la mise à jour.");
         }
     };
 
-    const validatePassword = (password) => {
-        const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>\/?]).{8,}$/;
-        return regex.test(password);
-    };
-
-    const handlePasswordUpdate = async () => {
-        setPasswordError("");
-        setPasswordMessage("");
-
-        if (!newPassword || newPassword.trim() === "") {
-            setPasswordError("Veuillez saisir un mot de passe");
+    const handlePasswordUpdate = async (e) => {
+        e.preventDefault();
+        if (newPassword.length < 8) {
+            showMessage("error", "Le mot de passe doit faire au moins 8 caractères.");
             return;
         }
-        if (!validatePassword(newPassword)) {
-            setPasswordError(
-                "Le mot de passe doit contenir au moins 8 caractères, une majuscule, un chiffre et un caractère spécial"
-            );
-            return;
-        }
-
         try {
             await updateMyPassword(newPassword);
-            setPasswordMessage("Mot de passe mis à jour avec succès. Veuillez vous reconnecter.");
             setNewPassword("");
-            localStorage.removeItem("token");
+            showMessage("success", "Mot de passe modifié. Veuillez vous reconnecter.");
             setTimeout(() => {
-                window.location.href = "/login?reason=relogin";
+                localStorage.removeItem("token");
+                window.location.href = "/login";
             }, 2000);
         } catch (err) {
-            setPasswordError(err.message);
+            showMessage("error", "Erreur lors du changement de mot de passe.");
         }
     };
 
-    if (!user) return <p>Chargement...</p>;
+    if (loading) return <PrivateLayout><div className="p-8">Chargement...</div></PrivateLayout>;
 
     return (
         <PrivateLayout>
-            <div className="max-w-4xl mx-auto bg-white shadow-md rounded-xl p-8">
-                <h1 className="text-2xl font-bold mb-6 text-gray-800">Mon compte</h1>
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                <h1 className="text-3xl font-bold text-gray-900 mb-8">Paramètres du compte</h1>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                    {/* Infos utilisateur */}
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Mes informations</h3>
+                <div className="flex flex-col md:flex-row gap-8">
+                    {/* 🔹 Sidebar Navigation */}
+                    <nav className="w-full md:w-64 flex-shrink-0 space-y-1">
+                        <button
+                            onClick={() => setActiveTab("profile")}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === "profile"
+                                    ? "bg-blue-50 text-blue-700"
+                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                }`}
+                        >
+                            <User size={18} /> Mon Profil
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("security")}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === "security"
+                                    ? "bg-blue-50 text-blue-700"
+                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                }`}
+                        >
+                            <Shield size={18} /> Sécurité
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("preferences")}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${activeTab === "preferences"
+                                    ? "bg-blue-50 text-blue-700"
+                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                }`}
+                        >
+                            <Bell size={18} /> Préférences
+                        </button>
+                    </nav>
 
-                        {!editMode ? (
-                            <>
-                                <p className="flex items-center gap-2 text-gray-700">
-                                    <User className="text-blue-600" size={18} />
-                                    <span className="font-semibold">Nom :</span> {user.name}
-                                </p>
-                                <p className="flex items-center gap-2 text-gray-700">
-                                    <Mail className="text-blue-600" size={18} />
-                                    <span className="font-semibold">Email :</span> {user.email}
-                                </p>
-                                <p className="flex items-center gap-2 text-gray-700">
-                                    <Shield className="text-blue-600" size={18} />
-                                    <span className="font-semibold">Rôle :</span> {user.role}
-                                </p>
-                                <p className="flex items-center gap-2 text-gray-700">
-                                    <span className="font-semibold">Statut :</span> {user.status}
-                                </p>
+                    {/* 🔹 Content Area */}
+                    <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 p-8 min-h-[500px]">
 
-                                <button
-                                    onClick={() => setEditMode(true)}
-                                    className="mt-4 bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
-                                >
-                                    Modifier mes infos
-                                </button>
-                            </>
-                        ) : (
-                            <form
-                                onSubmit={handleInfoUpdate}
-                                className="space-y-4 bg-gray-50 p-4 rounded-lg shadow"
-                            >
-                                <div>
-                                    <div className="flex items-center border rounded px-3 py-2">
-                                        <User className="text-gray-400 mr-2" size={18} />
-                                        <input
-                                            type="text"
-                                            value={editUser.name}
-                                            onChange={(e) =>
-                                                setEditUser({ ...editUser, name: e.target.value })
-                                            }
-                                            className="w-full outline-none"
-                                            placeholder="Nom"
-                                        />
-                                    </div>
-                                    {infoErrors.name && (
-                                        <p className="text-red-500 text-sm">{infoErrors.name}</p>
-                                    )}
-                                </div>
-
-                                <div>
-                                    <div className="flex items-center border rounded px-3 py-2">
-                                        <Mail className="text-gray-400 mr-2" size={18} />
-                                        <input
-                                            type="email"
-                                            value={editUser.email}
-                                            onChange={(e) =>
-                                                setEditUser({ ...editUser, email: e.target.value })
-                                            }
-                                            className="w-full outline-none"
-                                            placeholder="Email"
-                                        />
-                                    </div>
-                                    {infoErrors.email && (
-                                        <p className="text-red-500 text-sm">{infoErrors.email}</p>
-                                    )}
-                                </div>
-
-                                {infoMessage && (
-                                    <p className="text-green-600 text-sm">{infoMessage}</p>
-                                )}
-
-                                <div className="flex gap-2">
-                                    <button
-                                        type="submit"
-                                        className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
-                                    >
-                                        Enregistrer
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setEditMode(false)}
-                                        className="flex-1 bg-gray-400 text-white py-2 rounded-lg hover:bg-gray-500 transition"
-                                    >
-                                        Annuler
-                                    </button>
-                                </div>
-                            </form>
+                        {/* Feedback Message */}
+                        {message.text && (
+                            <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${message.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                                }`}>
+                                {message.type === "success" ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                                {message.text}
+                            </div>
                         )}
+
+                        {/* TAB: PROFILE */}
+                        {activeTab === "profile" && (
+                            <div className="space-y-8 animate-in fade-in duration-300">
+                                <div>
+                                    <h2 className="text-xl font-semibold text-gray-900">Informations personnelles</h2>
+                                    <p className="text-sm text-gray-500 mt-1">Gérez vos informations de base.</p>
+                                </div>
+
+                                <div className="flex items-center gap-6 pb-8 border-b border-gray-100">
+                                    <div className="h-20 w-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-2xl font-bold">
+                                        {user.email.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">Photo de profil</p>
+                                        <p className="text-sm text-gray-500">Générée automatiquement</p>
+                                    </div>
+                                </div>
+
+                                <form onSubmit={handleInfoUpdate} className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Nom complet</label>
+                                            <div className="relative">
+                                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                                <input
+                                                    type="text"
+                                                    value={editUser.name}
+                                                    onChange={(e) => setEditUser({ ...editUser, name: e.target.value })}
+                                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Adresse email</label>
+                                            <div className="relative">
+                                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                                <input
+                                                    type="email"
+                                                    value={editUser.email}
+                                                    onChange={(e) => setEditUser({ ...editUser, email: e.target.value })}
+                                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4">
+                                        <button type="submit" className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition shadow-sm font-medium">
+                                            <Save size={18} /> Enregistrer les modifications
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        )}
+
+                        {/* TAB: SECURITY */}
+                        {activeTab === "security" && (
+                            <div className="space-y-8 animate-in fade-in duration-300">
+                                <div>
+                                    <h2 className="text-xl font-semibold text-gray-900">Sécurité & Connexion</h2>
+                                    <p className="text-sm text-gray-500 mt-1">Mettez à jour votre mot de passe et sécurisez votre compte.</p>
+                                </div>
+
+                                <form onSubmit={handlePasswordUpdate} className="max-w-md space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Nouveau mot de passe</label>
+                                        <div className="relative">
+                                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                            <input
+                                                type="password"
+                                                value={newPassword}
+                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                                                placeholder="••••••••"
+                                            />
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-2">Minimum 8 caractères, incluant majuscules et symboles.</p>
+                                    </div>
+
+                                    <div className="pt-2">
+                                        <button type="submit" className="flex items-center gap-2 bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-gray-800 transition shadow-sm font-medium">
+                                            <Shield size={18} /> Mettre à jour le mot de passe
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        )}
+
+                        {/* TAB: PREFERENCES */}
+                        {activeTab === "preferences" && (
+                            <div className="space-y-8 animate-in fade-in duration-300">
+                                <div>
+                                    <h2 className="text-xl font-semibold text-gray-900">Préférences</h2>
+                                    <p className="text-sm text-gray-500 mt-1">Personnalisez votre expérience.</p>
+                                </div>
+
+                                <div className="p-12 text-center bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                    <Bell className="mx-auto text-gray-400 mb-3" size={32} />
+                                    <h3 className="text-gray-900 font-medium">Notifications</h3>
+                                    <p className="text-gray-500 text-sm mt-1">Les paramètres de notification seront bientôt disponibles.</p>
+                                </div>
+                            </div>
+                        )}
+
                     </div>
-
-                    {/* Changement mot de passe */}
-                    <div>
-                        <h3 className="text-lg font-semibold mb-4">Changer le mot de passe</h3>
-
-                        {!editPassword ? (
-                            <>
-                            <p className="text-gray-700">********</p>
-                            <button
-                                onClick={() => setEditPassword(true)}
-                                className="mt-4 bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
-                            >
-                                Modifier le mot de passe
-                            </button>
-                            </>
-                        ) : (
-                            <div className="space-y-4 bg-gray-50 p-4 rounded-lg shadow">
-                            <div className="flex items-center border rounded px-3 py-2">
-                                <Lock className="text-gray-400 mr-2" size={18} />
-                                <input
-                                type="password"
-                                placeholder="Nouveau mot de passe"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                className="w-full outline-none"
-                                />
-                            </div>
-
-                            {passwordError && (
-                                <p className="text-red-500 text-sm">{passwordError}</p>
-                            )}
-                            {passwordMessage && (
-                                <p className="text-green-600 text-sm">{passwordMessage}</p>
-                            )}
-
-                            <div className="flex gap-2">
-                                <button
-                                onClick={handlePasswordUpdate}
-                                className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-                                >
-                                Enregistrer
-                                </button>
-                                <button
-                                onClick={() => {
-                                    setEditPassword(false);
-                                    setNewPassword("");
-                                    setPasswordError("");
-                                    setPasswordMessage("");
-                                }}
-                                className="flex-1 bg-gray-400 text-white py-2 rounded-lg hover:bg-gray-500 transition"
-                                >
-                                Annuler
-                                </button>
-                            </div>
-                            </div>
-                        )}
-                        </div>
                 </div>
             </div>
         </PrivateLayout>

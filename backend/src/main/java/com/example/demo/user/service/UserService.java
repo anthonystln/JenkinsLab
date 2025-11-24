@@ -78,6 +78,12 @@ public class UserService {
         return repo.findById(id).map(u -> {
             u.setName(updatedUser.getName());
             u.setEmail(updatedUser.getEmail());
+            if (updatedUser.getRole() != null) {
+                u.setRole(updatedUser.getRole());
+            }
+            if (updatedUser.getStatus() != null) {
+                u.setStatus(updatedUser.getStatus());
+            }
             return repo.save(u); // UPDATE
         }).orElse(null);
     }

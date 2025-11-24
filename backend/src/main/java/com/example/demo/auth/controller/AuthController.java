@@ -80,6 +80,14 @@ public class AuthController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found after authentication"));
 
+        // 🛑 Vérification du statut
+        if (user.getStatus() == Status.BANNED) {
+            return ResponseEntity.status(403).body("Votre compte a été suspendu. Contactez l'administrateur.");
+        }
+        if (user.getStatus() == Status.PENDING) {
+            return ResponseEntity.status(403).body("Votre compte est en attente de validation.");
+        }
+
         // Générer le JWT
         String token = jwtUtil.generateToken(email, user.getId(),
             Collections.singletonList(
