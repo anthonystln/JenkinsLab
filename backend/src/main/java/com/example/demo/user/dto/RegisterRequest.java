@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public class UpdateUserRequest {
+public class RegisterRequest {
     @NotBlank(message = "Le nom est requis")
     @Size(min = 2, max = 50, message = "Le nom doit faire entre 2 et 50 caractères")
     private String name;
@@ -18,26 +18,17 @@ public class UpdateUserRequest {
     )
     private String email;
 
-    public UpdateUserRequest() {}
+    @NotBlank(message = "Le mot de passe est requis")
+    @Size(min = 6, message = "Le mot de passe doit faire au moins 6 caractères")
+    private String password;
 
-    public UpdateUserRequest(String name, String email) {
-        this.name = name;
-        this.email = email;
-    }
+    // Getters & Setters
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }

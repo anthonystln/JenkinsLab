@@ -36,7 +36,12 @@ export function AuthProvider({ children }) {
 
     if (!res.ok) {
       const errorText = await res.text();
-      throw new Error(errorText || "Identifiants invalides");
+      try {
+        const data = JSON.parse(errorText);
+        throw new Error(data.error || errorText);
+      } catch (e) {
+        throw new Error(errorText || "Identifiants invalides");
+      }
     }
 
     const data = await res.json();

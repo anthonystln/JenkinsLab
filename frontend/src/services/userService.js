@@ -119,22 +119,26 @@ export async function updateMyPassword(newPassword) {
 
 // Mise à jour des infos de l'utilisateur connecté
 export async function updateMyInfo(data) {
-	const token = localStorage.getItem("token") || "";
+  const token = localStorage.getItem("token") || "";
 
-	const res = await fetch(`${API_URL}/users/me`, {
-		method: "PUT",
-		headers: {
-			"Content-Type": "application/json",
-      		Authorization: `Bearer ${token}`,
-		},
-		body: JSON.stringify(data),
-	});
+  const res = await fetch(`${API_URL}/users/me`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
 
-	if (!res.ok) {
-		const err = await res.json().catch(() => ({}));
-		throw new Error(err.error || "Erreur lors de la mise à jour du profil");
-	}
-	return res.json();
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    const error = new Error(errData.error || "Erreur lors de la mise à jour du profil");
+    if (errData.fieldErrors) {
+      error.fieldErrors = errData.fieldErrors;
+    }
+    throw error;
+  }
+  return res.json();
 }
 
 // ❌ Suppression utilisateur

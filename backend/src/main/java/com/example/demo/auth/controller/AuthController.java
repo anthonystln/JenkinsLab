@@ -41,34 +41,36 @@ public class AuthController {
      * Enregistrement d’un utilisateur
      */
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User userRequest) {
-        if (userRepository.findByEmail(userRequest.getEmail()).isPresent()) {
+    public ResponseEntity<?> register(@RequestBody @jakarta.validation.Valid com.example.demo.user.dto.RegisterRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Email déjà utilisé");
         }
 
-        // Hasher le mot de passe
-        userRequest.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        User user = new User();
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.USER);
+        user.setStatus(Status.PENDING);
 
-        // Valeurs par défaut si non fournies
-        if (userRequest.getRole() == null) {
-            userRequest.setRole(Role.USER);
-        }
-        if (userRequest.getStatus() == null) {
-            userRequest.setStatus(Status.ACTIVE);
-        }
+        User savedUser = userRepository.save(user);
 
-        User savedUser = userRepository.save(userRequest);
-
-        return ResponseEntity.ok(savedUser);
+        return ResponseEntity.ok(new com.example.demo.user.dto.UserDto(
+            savedUser.getId(), 
+            savedUser.getName(), 
+            savedUser.getEmail(), 
+            savedUser.getRole().name(), 
+            savedUser.getStatus().name()
+        ));
     }
 
     /**
      * Connexion utilisateur
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
-        String password = request.get("password");
+    public ResponseEntity<?> login(@RequestBody @jakarta.validation.Valid com.example.demo.user.dto.LoginRequest request) {
+        String email = request.getEmail();
+        String password = request.getPassword();
 
         // Vérifier credentials avec Spring Security
         Authentication authentication = authenticationManager.authenticate(

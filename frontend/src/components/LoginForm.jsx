@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Lock, Mail, ArrowRight, CheckCircle } from "lucide-react";
 
@@ -26,7 +26,12 @@ export default function LoginForm() {
 			await login({ email, password });
 		} catch (err) {
 			const message = err.response?.data || err.message || "Erreur de connexion";
-			setError(message);
+			// Si c'est un compte en attente, on l'affiche en bleu/info plutôt qu'en rouge
+			if (message.includes("attente de validation")) {
+				setInfo(message);
+			} else {
+				setError(message);
+			}
 		}
 	};
 
@@ -152,9 +157,9 @@ export default function LoginForm() {
 
 					<p className="mt-8 text-center text-sm text-gray-500">
 						Pas encore de compte ?{" "}
-						<a href="#" className="text-blue-600 font-medium hover:underline">
+						<Link to="/register" className="text-blue-600 font-medium hover:underline">
 							Créer un compte
-						</a>
+						</Link>
 					</p>
 				</div>
 			</div>
