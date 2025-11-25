@@ -234,7 +234,12 @@ export default function UsersPage() {
                             onSort={handleSort}
                             onEdit={(user) => {
                                 setEditingUser(user);
-                                setNewUser({ name: user.name, email: user.email });
+                                setNewUser({
+                                    name: user.name,
+                                    email: user.email,
+                                    role: user.role,
+                                    status: user.status
+                                });
                                 setShowForm(true);
                             }}
                             onDelete={setConfirmDelete}

@@ -74,6 +74,8 @@ public class UserService {
         return saved;
     }
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(UserService.class);
+
     public User updateUser(Long id, User updatedUser) {
         return repo.findById(id).map(u -> {
             u.setName(updatedUser.getName());
@@ -81,7 +83,9 @@ public class UserService {
             if (updatedUser.getRole() != null) {
                 u.setRole(updatedUser.getRole());
             }
-            if (updatedUser.getStatus() != null) {
+            if (updatedUser.getStatus() != null && u.getStatus() != updatedUser.getStatus()) {
+                logger.info("AUDIT: User status changed from {} to {} for user {} (ID: {})", 
+                    u.getStatus(), updatedUser.getStatus(), u.getEmail(), u.getId());
                 u.setStatus(updatedUser.getStatus());
             }
             return repo.save(u); // UPDATE

@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage';
 import InvoicesPage from './pages/InvoicesPage';
 import SettingsPage from './pages/SettingsPage';
 import UsersPage from './pages/UsersPage';
+import RegisterPage from './pages/RegisterPage';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
@@ -20,6 +21,7 @@ export default function App() {
 					<Toaster position="top-right" reverseOrder={false} />
 					<Routes>
 						<Route path="/login" element={<LoginForm />} />
+						<Route path="/register" element={<RegisterPage />} />
 						<Route
 							path="/"
 							element={

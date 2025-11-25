@@ -175,7 +175,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User user) {
+    public User updateUser(@PathVariable Long id, @RequestBody @Valid User user) {
         // On récupère l’utilisateur déjà en base
         User existingUser = userService.getUserById(id);
 
@@ -202,7 +202,7 @@ public class UserController {
     @PreAuthorize("isAuthenticated()") // l'utilisateur doit être connecté
     public ResponseEntity<UserDto> updateMyInfo(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody UpdateUserRequest request
+            @RequestBody @Valid UpdateUserRequest request
     ) {
         User updateUser = userService.updateMyInfo(userDetails.getUsername(), request);
 
